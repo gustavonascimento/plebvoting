@@ -32,8 +32,9 @@
               <thead>
                 <tr>
                   <th scope="col">#</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Votes</th>
+                  <th scope="col">Nome</th>
+                  <th scope="col">Votos Sim</th>
+                  <th scope="col">Votos Não</th>
                 </tr>
               </thead>
               <tbody id="plebiscitesResults">
@@ -42,8 +43,8 @@
             <hr/>
             <form onSubmit="App.castVote(); return false;">
               <div class="form-group">
-                <label for="plebiscitesSelect">Selecionar o Plebiscito</label>
-                <select class="form-control" id="plebiscitesSelect">
+                <label for="votesSelect">Selecionar a intenção de voto</label>
+                <select class="form-control" id="votesSelect">
                 </select>
               </div>
               <button type="submit" class="btn btn-primary">Vote</button>

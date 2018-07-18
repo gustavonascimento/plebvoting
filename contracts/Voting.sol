@@ -23,7 +23,7 @@ contract Voting {
     // Constructor - Smart Contracts 
     function Voting () public {
         addPlebiscite("A posse de armas deve ser liberada a advogados?");
-        addPlebiscite("A vacina a menores de 2 anos e obrigatoria?");
+        // addPlebiscite("A vacina a menores de 2 anos e obrigatoria?");
     }
 
     function addPlebiscite (string _name ) private {

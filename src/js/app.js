@@ -2,6 +2,7 @@ App = {
   web3Provider: null,
   contracts: {},
   account: '0x0',
+  hasVoted: false,
 
   init: function() {
     return App.initWeb3();
@@ -55,25 +56,51 @@ App = {
       var plebiscitesResults = $("#plebiscitesResults");
       plebiscitesResults.empty();
 
+      var votesSelect = $('#votesSelect')
+      votesSelect.empty();
+
       for (var i = 1; i <= plebiscitesCount; i++) {
         votingInstance.plebiscites(i).then(function(plebiscite) {
           var id = plebiscite[0];
           var name = plebiscite[1];   
-          var voteCount = plebiscite[2];
+          var votesYes = plebiscite[2];
+          var votesNo = plebiscite[3];
 
-          // Render candidate Result
-          var plebisciteTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
+          // Render plebiscite Result
+          var plebisciteTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + votesYes + "</td></tr>" + votesNo + "</td></tr>"
           plebiscitesResults.append(plebisciteTemplate);
+
+          // Render votes 
+          var votesOption = "<option value>" + votesYes + " Sim" + "</ option>" + "<option value>" + votesNo + " Não" + "</ option>"
+          votesSelect.append(votesOption);
         });
       }
+      return votingInstance.voters(App.account);
+      }).then(function(hasVoted) {
+        // Do not allow a user to vote
+        if(hasVoted) {
+          $('form').hide();
+        }
+        loader.hide();
+        content.show();
+      }).catch(function(error) {
+        console.warn(error);
+      });
+    },
 
-      loader.hide();
-      content.show();
-    }).catch(function(error) {
-      console.warn(error);
-    });
-  }
-};
+    castVote: function() {
+      var plebisciteId = $('#votesSelect').val();
+      App.contracts.Voting.deployed().then(function(instance) {
+        return instance.vote(plebisciteId, { from: App.account });
+      }).then(function(result) {
+        // Wait for votes to update
+        $("#content").hide();
+        $("#loader").show();
+      }).catch(function(err) {
+        console.error(err);
+      });
+    }
+  };
 
 $(function() {
   $(window).load(function() {
