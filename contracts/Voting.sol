@@ -1,47 +1,65 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.17;
+
 
 contract Voting {
-    // Model a plebiscite
-    struct Plebiscite {
-        uint id;
-        string name;
-        uint votesYes;
-        uint votesNo;
+
+    struct Proposal {
+        string title;
+        uint voteCountPos;
+        uint voteCountNeg;
+        uint voteCountAbs;
+        mapping (address => Voter) voters;
+        address[] votersAddress;
     }
 
-    // Store plebiscites
-
-    // Store accounts that have voted
-    mapping(address => bool) public voters;
-
-    // Fetch plebiscite
-    mapping(uint => Plebiscite) public plebiscites;
-
-    // Store plebiscites count 
-    uint public plebiscitesCount;
-
-    // Constructor - Smart Contracts 
-    function Voting () public {
-        addPlebiscite("A posse de armas deve ser liberada a advogados?");
-        // addPlebiscite("A vacina a menores de 2 anos e obrigatoria?");
+    struct Voter {
+        uint value;
+        bool voted;
     }
 
-    function addPlebiscite (string _name ) private {
-        plebiscitesCount ++;
-        plebiscites[plebiscitesCount] = Plebiscite(plebiscitesCount, _name, 0, 0); 
+    Proposal[] public proposals;
+
+    event CreatedProposalEvent();
+    event CreatedVoteEvent();
+
+    function getNumProposals() public view returns (uint) {
+        return proposals.length;
     }
 
-    function vote (uint _plebisciteId) public {
-        // Require tha a voter haven't voted yet
-        require(!voters[msg.sender]);
-
-        // Require a valid plebiscite
-        require(_plebisciteId > 0 && _plebisciteId <= plebiscitesCount);
-
-        // Record that voter has voted
-        voters[msg.sender] = true; 
-
-        // Update plebiscite votes count
-        plebiscites[_plebisciteId].votesYes ++;
+    function getProposal(uint proposalInt) public view returns (uint, string, uint, uint, uint, address[]) {
+        if (proposals.length > 0) {
+            Proposal storage p = proposals[proposalInt]; // Get the proposal
+            return (proposalInt, p.title, p.voteCountPos, p.voteCountNeg, p.voteCountAbs, p.votersAddress);
+        }
     }
+
+    function addProposal(string title) public returns (bool) {
+        Proposal memory proposal;
+        CreatedProposalEvent();
+        proposal.title = title;
+        proposals.push(proposal);
+        return true;
+    }
+
+    function vote(uint proposalInt, uint voteValue) public returns (bool) {
+        if (proposals[proposalInt].voters[msg.sender].voted == false) { // check duplicate key
+            require(voteValue == 1 || voteValue == 2 || voteValue == 3); // check voteValue
+            Proposal storage p = proposals[proposalInt]; // Get the proposal
+            if (voteValue == 1) {
+                p.voteCountPos += 1;
+            } else if (voteValue == 2) {
+                p.voteCountNeg += 1;
+            } else {
+                p.voteCountAbs += 1;
+            }
+            p.voters[msg.sender].value = voteValue;
+            p.voters[msg.sender].voted = true;
+            p.votersAddress.push(msg.sender);
+            CreatedVoteEvent();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 }
